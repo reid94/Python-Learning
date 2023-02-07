@@ -1,0 +1,95 @@
+from scene import *
+import sound
+import random
+import math
+A = Action
+
+class MyScene (Scene):
+	def setup(self):
+		
+		self.emojis = []
+		self.lasers = []
+		self.timer_value = 15
+		self.frame_counter = 0
+		self.game_running = True 
+		
+		emoji_image_list = ['emj:Alien','emj:Alien_Monster','emj:American_Football','emj:Banana','emj:Basketball']
+		
+		# draw grid of emojis
+		for y in range(4):
+			for x in range(12):
+				new_emoji = SpriteNode(random.choice(emoji_image_list))
+				new_emoji.position = (x * 80 + 160, y * 80 + 470)
+				self.add_child(new_emoji)
+				self.emojis.append(new_emoji)
+				
+		#create spaceship
+		self.spaceship = SpriteNode('spc:CockpitBlue5')
+		self.spaceship.position = (600, 70)
+		self.add_child(self.spaceship)
+		
+		#create timer
+		self.timer_label = LabelNode()
+		self.timer_label.text = str(self.timer_value)
+		self.timer_label.position = (40, 738)
+		self.timer_label.font = ('Apple Symbols', 30)
+		self.add_child(self.timer_label)
+				
+	def did_change_size(self):
+		pass
+	
+	def update(self):
+		if self.game_running == True:
+			
+			#move spaceship with accelerometer
+			new_x = self.spaceship.position.x - gravity().y * 30
+			if new_x >= 0 and new_x <= 1024:
+				self.spaceship.position = (new_x, 70)
+			
+			#move lasers
+			for l in list(self.lasers):
+				l.position = (l.position.x, l.position.y + 10)
+				if l.position.y > 800:
+					l.remove_from_parent()
+					self.lasers.remove
+				for e in list(self.emojis):
+					if l.bbox.intersects(e.bbox):
+						new_explosion = SpriteNode('shp:Explosion01')
+						new_explosion.position = e.position
+						new_explosion.scale = 0.4
+						act = A.sequence(A.fade_to(0, 0.5), A.remove())
+						new_explosion.run_action(act)
+						self.add_child(new_explosion)
+						l.remove_from_parent()
+						self.lasers.remove(l)
+						e.remove_from_parent()
+						self.emojis.remove(e)
+						sound.play_effect('arcade:Explosion_3')
+						
+			# countdown timer
+			self.frame_counter = self.frame_counter + 1
+			if self.frame_counter >= 60:
+				#subtract 1 from timer
+				self.timer_value = self.timer_value - 1
+				self.timer_label.text = str(self.timer_value)
+				self.frame_counter = 0
+				if self.timer_value == 0:
+					self.game_running = False
+				
+		
+	def touch_began(self, touch):
+		if self.game_running == True:
+			sound.play_effect('arcade:Laser_1')
+			new_laser = SpriteNode('spc:BoltGold')
+			new_laser.position = (self.spaceship.position.x, self.spaceship.position.y + 70)
+			self.add_child(new_laser)
+			self.lasers.append(new_laser)
+	
+	def touch_moved(self, touch):
+		pass
+	
+	def touch_ended(self, touch):
+		pass
+
+if __name__ == '__main__':
+	run(MyScene(), show_fps=False)
