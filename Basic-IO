@@ -1,0 +1,13 @@
+# First IO Script
+# Feb 7th 2023
+
+#fruit = "Apple"
+fruit = input("What is your favourite fruit? ")
+
+#print(fruit + " is good.")
+# Prints out what the user has entered
+
+if fruit == "Apple":
+	print("Good choice.")
+else:
+	print("Thats okay.")
